@@ -1,2 +1,3 @@
 # dsa_course_frontendmasters
-A crash course on data structures and algorithms, originally in Typescript and rewritten in C
+
+A C implementation of what I learn from ThePrimagen's ["The Last Algorithms Course You'll Need"](https://frontendmasters.com/courses/algorithms/) on FrontEndMasters.
