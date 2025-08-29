@@ -1,6 +1,23 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* 
+	An ArrayList is a data strcucture that is a dynamically resizing array,
+	allows you to have the benefits of an array while being flexible in size.
+	
+	If you add or remove elements from the middle of the list or the start, you
+	have shift all elements around, which leads to a complexity of O(n).
+
+	However, if you know the index and want to get the result, like an array
+	you can access the element easily with O(1) complexity.
+
+	Complexities:
+	append: O(1)
+	prepend: O(n)
+	insert: O(n)
+	remove: O(n)
+	get: O(1)
+*/
 typedef struct s_array_list
 {
 	int		len;
@@ -125,5 +142,8 @@ int	main()
 
 	printf("get value at index 3: %i\n", array_list_get(list, 3));
 	array_list_remove(list, 1);
+	array_list_print(list);
+	
+	array_list_insert(list, 99, 1);
 	array_list_print(list);
 }
