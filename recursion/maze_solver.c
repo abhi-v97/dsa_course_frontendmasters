@@ -26,14 +26,7 @@ typedef struct s_point
 	int	y;
 }		t_point;
 
-int dir[4][2] = {
-	{-1, 0},
-	{1, 0},
-	{0, -1},
-	{0, 1},
-};
-
-t_point	find_start(char **maze, char c)
+t_point	find_start(char maze[5][5], char c)
 {
 	t_point result;
 
@@ -59,28 +52,62 @@ void	map_setchar(char maze[5][5], char c)
 			maze[i][j] = c;
 }
 
-bool	walk(char **maze, char **seen, char **path, t_point curr)
+bool	can_walk(char maze[5][5], char seen[5][5], int x, int y)
 {
-	if (curr.x < 0 || curr.y < 0 || curr.x > 4 || curr.y > 4)
+	if (x < 0 || y < 0 || x > 4 || y > 4)
 		return (false);
-	if (maze[curr.x][curr.y] == '1')
+	if (maze[x][y] == '1')
 		return (false);
-	else if (maze[curr.x][curr.y] == '1')
-		return (true);
+	if (seen[x][y] == true)
+		return (false);
+	seen[x][y] = true;
 	return (false);
 }
 
-void	print_solution(char **maze, int height, int width)
+bool walk(char maze[5][5], int x, int y, char seen[5][5])
 {
-	for (int x = 0; x < width; x++)
+	if (maze[x][y] == 'E')
 	{
-		for (int y = 0; y < height; y++)
-			printf(" %c ", maze[y][x]);
+		seen[x][y] = '1';
+		return (true);
+	}
+	if (can_walk(maze, seen, x, y) == true)
+	{
+		seen[x][y] = '1';
+		maze[x][y] = '1';
+		for (int i = 0; i < 5; i++)
+		{
+			if (walk(maze, x + 1, y, seen) == true)
+				return (true);
+			if (walk(maze, x, y + 1, seen) == true)
+				return (true);
+			if (walk(maze, x - 1, y, seen) == true)
+				return (true);
+			if (walk(maze, x, y - 1, seen) == true)
+				return (true);
+			seen[x][y] = '0';
+			maze[x][y] = '0';
+		}
+	}
+	return (false);
+}
+
+void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
+{
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			if (maze[y][x] == '0' && seen[y][x] == '1')
+				printf(" x ");
+			else
+				printf(" %c ", maze[y][x]);
+		}
 		printf("\n");	
 	}
 }
 
-void	solve(char **maze)
+void	solve(char maze[5][5])
 {
 	char	seen[5][5];
 	char	path[5][5];
@@ -89,7 +116,11 @@ void	solve(char **maze)
 	map_setchar(seen, '0');
 	map_setchar(path, '0');
 	
+	if (walk(maze, start.x, start.y, seen) == true)
+		print_solution(maze, seen, 5, 5);
 
+	print_solution(maze, seen, 5, 5);
+	print_solution(seen, seen, 5, 5);
 
 }
 
@@ -100,6 +131,6 @@ int main()
 					{'1', '0', '1', '1', '1'}, 
 					{'1', '0', '1', '0', '1'}, 
 					{'1', 'S', '1', '1', '1'}};
-	
+	solve(map);
 
 }
