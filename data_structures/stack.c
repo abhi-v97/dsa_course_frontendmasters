@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/* 
+	The stack data structure is a linear structure that operates using a LIFO
+	(Last In, First Out) principle.
+	
+	Search complexity:   O(n)
+	Insert complexity:   O(1)
+	Delete complexity:   O(1)
+	Space complexity:    O(n)
+*/
+
 typedef struct	s_node
 {
 	int				data;
@@ -12,6 +22,8 @@ typedef struct	s_stack
 	t_node	*head;
 }	t_stack;
 
+// mallocs and initialises an emtpy stack
+// returns pointer to stack on success, NULL on failure
 t_stack	*init_stack()
 {
 	t_stack	*new;
@@ -23,58 +35,62 @@ t_stack	*init_stack()
 	return (new);
 }
 
-void	push(t_stack *stack, int data)
+// pushes int data onto the stack
+// returns 0 on success, 1 on failure
+int	push(t_stack *stack, int data)
 {
 	t_node	*node;
 
 	node = (t_node *) malloc(sizeof(t_node));
 	if (!node)
-		return ;
+		return (1);
 	node->data = data;
 	node->next = NULL;
 	if (!stack->head)
 	{
 		stack->head = node;
-		return ;
+		return (1);
 	}
 	node->next = stack->head;
 	stack->head = node;
+	return (0);
 }
 
-int	pop(t_stack *stack)
+// pops one element from the stack, sets *result to popped element on success
+// returns 0 on success, 1 on failure
+int	pop(t_stack *stack, int *result)
 {
 	t_node	*temp;
-	int		value;
 
 	if (!stack->head)
-	{
-		printf("Stack underflow\n");
-		return (-1);
-	}
+		return (1);
 	temp = stack->head;
 	stack->head = stack->head->next;
-	value = temp->data;
+	if (result)
+		*result = temp->data;
 	free(temp);
-	return (value);
+	return (0);
 }
 
-int	peek(t_stack *stack)
+// returns top element of stack on success
+// returns 0 on success, 1 on failure
+int	peek(t_stack *stack, int *result)
 {
 	if (!stack->head)
-	{
-		printf("Stack is empty\n");
-		return (-1);
-	}
-	return (stack->head->data);
+		return (1);
+	if (result)
+		*result = stack->head->data;
+	return (0);
 }
 
+// prints stack, or an error message if the stack is empty
 void	print_stack(t_stack *stack)
 {
 	t_node	*temp;
 
 	if (!stack->head)
 	{
-		printf("Stack is empty\n");
+		fprintf(stderr, "print: stack is empty\n");
 		return ;
 	}
 	temp = stack->head;
@@ -90,6 +106,7 @@ void	print_stack(t_stack *stack)
 int	main()
 {
 	t_stack	*stack;
+	int value;
 
 	stack = init_stack();
 	push(stack, 1);
@@ -97,15 +114,24 @@ int	main()
 	push(stack, 4);
 	push(stack, 0);
 	print_stack(stack);
-	printf("peek test: %i\n\n", peek(stack));
+	if (peek(stack, &value) == 0)
+		printf("peek test: %i\n\n", value);
+	else
+	 	fprintf(stderr, "peek: stack is empty\n");
 	
-	pop(stack);
+	pop(stack, NULL);
 	print_stack(stack);
-	printf("peek test: %i\n\n", peek(stack));
+	if (peek(stack, &value) == 0)
+		printf("peek test: %i\n\n", value);
+	else
+	 	fprintf(stderr, "peek: stack is empty\n");
 	
-	pop(stack);
-	pop(stack);
-	pop(stack);
+	pop(stack, NULL);
+	pop(stack, NULL);
+	pop(stack, NULL);
 	print_stack(stack);
-	printf("peek test: %i\n\n", peek(stack));
+	if (peek(stack, &value) == 0)
+		printf("peek test: %i\n\n", value);
+	else
+	 	fprintf(stderr, "peek: stack is empty\n");
 }

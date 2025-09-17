@@ -190,11 +190,17 @@ int main()
 
 	printf("\ntest linked list creation and append\n");
 	list = NULL;
+
+	printf("\ntest functions on an empty list\n");
+	remove_at(&list, 0);
+	get(list, 42);
+	get_last(list);
+
 	for (int i = 0; i < 4; i++)
 		append(&list, array[i]);
 	print_list(list);
 
-	printf("\ntest prepend\n");
+	printf("\ntest prepend by adding 99\n");
 	prepend(&list, new_node(99));
 	print_list(list);
 
@@ -207,9 +213,5 @@ int main()
 	
 	printf("\ntest remove_node by removing the node found by get\n");
 	remove_node(&list, test);
-	print_list(list);
-
-	for (int i = 0; i < 2; i ++)
-		remove_at(&list, 0);
 	print_list(list);
 }
