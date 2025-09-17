@@ -72,14 +72,14 @@ int	pop(t_stack *stack, int *result)
 	return (0);
 }
 
-// returns top element of stack on success
+// updates *value to head of stack on success
 // returns 0 on success, 1 on failure
-int	peek(t_stack *stack, int *result)
+int	peek(t_stack *stack, int *value)
 {
 	if (!stack->head)
 		return (1);
-	if (result)
-		*result = stack->head->data;
+	if (value)
+		*value = stack->head->data;
 	return (0);
 }
 

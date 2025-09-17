@@ -25,50 +25,72 @@ typedef struct s_queue
 	struct s_node *tail;
 }	t_queue;
 
+// mallocs and initialises an emtpy queue
+// returns pointer to stack on success, NULL on failure
 t_queue	*init_queue()
 {
 	t_queue	*new;
 
 	new = (t_queue *) malloc(sizeof(t_queue));
+	if (!new)
+		return (NULL);
 	new->head = NULL;
 	new->tail = NULL;
 	return (new);
 }
 
-void	enqueue(t_queue *q, int value)
+// adds value as a new node in the queue
+// returns 0 on success, 1 on failure
+int	enqueue(t_queue *q, int value)
 {
 	t_node	*new;
 
 	new = (t_node *) malloc(sizeof(t_node));
+	if (!new)
+		return (1);
 	new->value = value;
 	if (!q->tail)
 	{
 		q->tail = new;
 		q->head = new;
-		return ;
 	}
-	q->tail->next = new;
-	q->tail = new;
+	else
+	{
+		q->tail->next = new;
+		q->tail = new;
+	}
+	return (0);
 }
 
-void	dequeue(t_queue *q)
+// removes an element from the queue
+// updates *value with the removed element
+// returns 0 on success, 1 on failure
+int	dequeue(t_queue *q, int *value)
 {
 	t_node	*temp;
 
 	if (!q)
-		return ;
+		return (1);
 	temp = q->head;
+	if (value)
+		*value = temp->value;
 	q->head = temp->next;
 	free(temp);
+	return (0);
 }
 
-int	peek(t_queue *q)
+// updates *value to head of queue on success
+// returns 0 on success, 1 on failure
+int	peek(t_queue *q, int *value)
 {
 	if (!q || !q->head)
-		return (printf("error, queue is empty\n"), 0);
-	return (q->head->value);
+		return (1);
+	if (value)
+		*value = q->head->value;
+	return (0);
 }
 
+// prints queue, or an error message if it is empty
 void	print_queue(t_queue *q)
 {
 	t_node	*temp;
@@ -88,6 +110,7 @@ void	print_queue(t_queue *q)
 int	main()
 {
 	t_queue	*q;
+	int		value;
 	
 	q = init_queue();
 	enqueue(q, 0);
@@ -95,8 +118,9 @@ int	main()
 	enqueue(q, 5);
 	enqueue(q, 1);
 	print_queue(q);
-	dequeue(q);
-	dequeue(q);
+	dequeue(q, NULL);
+	dequeue(q, NULL);
 	print_queue(q);
-	printf("test peek: %i\n", peek(q));
+	peek(q, &value);
+	printf("test peek: %i\n", value);
 }
