@@ -40,71 +40,63 @@ t_point	find_start(char **maze, char c, int width, int height)
 		{
 			if (maze[i][j] == c)
 			{
-				start.x = i;
-				start.y = j;
+				start.x = j;
+				start.y = i;
 				return (start);
 			}
 		}
 	return (start);
 }
 
-void	map_setchar(char maze[5][5], char c)
+bool	can_walk(char **maze, char **seen, int x, int y, int width, int height)
 {
-	for (int i = 0; i < 5; i++)
-		for (int j = 0; j < 5; j++)
-			maze[i][j] = c;
-}
-
-bool	can_walk(char maze[5][5], char seen[5][5], int x, int y)
-{
-	if (x < 0 || y < 0 || x > 4 || y > 4)
+	if (x < 0 || y < 0 || x >= width || y >= height)
 		return (false);
-	if (maze[x][y] == '1')
+	if (maze[y][x] == '1')
 		return (false);
-	if (seen[x][y] == true)
+	if (seen[y][x] == true)
 		return (false);
-	// seen[x][y] = true;
 	return (true);
 }
 
-bool walk(char maze[5][5], int x, int y, char seen[5][5])
+bool walk(char **maze, char **seen, int x, int y, int width, int height)
 {
-	if (maze[x][y] == 'E')
+	if (maze[y] && maze[y][x] == 'E')
 	{
-		seen[x][y] = '1';
+		seen[y][x] = '1';
 		return (true);
 	}
-	if (can_walk(maze, seen, x, y) == true)
+	if (can_walk(maze, seen, x, y, width, height) == true)
 	{
-		seen[x][y] = '1';
-		maze[x][y] = '1';
+		seen[y][x] = '1';
+		maze[y][x] = '1';
 		for (int i = 0; i < 5; i++)
 		{
-			if (walk(maze, x + 1, y, seen) == true)
+			if (walk(maze, seen, x, y + 1, width, height) == true)
 				return (true);
-			if (walk(maze, x, y + 1, seen) == true)
+			if (walk(maze, seen, x + 1, y, width, height) == true)
 				return (true);
-			if (walk(maze, x - 1, y, seen) == true)
+			if (walk(maze, seen, x, y - 1, width, height) == true)
 				return (true);
-			if (walk(maze, x, y - 1, seen) == true)
+			if (walk(maze, seen, x - 1, y, width, height) == true)
 				return (true);
-			seen[x][y] = '0';
-			maze[x][y] = '0';
+			seen[y][x] = '0';
+			maze[y][x] = '0';
 		}
 	}
 	return (false);
 }
 
-void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
+void	print_solution(char **maze, char **seen, int width, int height)
 {
-	for (int y = 0; y < height; y++)
+	for (int y = 0; y < height && maze[y]; y++)
 	{
-		for (int x = 0; x < width; x++)
+		for (int x = 0; x < width && maze[y][x]; x++)
 		{
 			if (maze[y][x] == '1' && seen[y][x] == '1')
-				printf(" x ");
+				printf(".");
 			else
-				printf(" %c ", maze[y][x]);
+				printf("%c", maze[y][x]);
 		}
 		printf("\n");	
 	}
@@ -112,16 +104,21 @@ void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
 
 void	solve(char **maze, int width, int height)
 {
-	char	seen[5][5];
+	char	**seen;
 	t_point	start = find_start(maze, 'S', width, height);
 	
-	printf("%i %i \n", start.x, start.y);
-	map_setchar(seen, '0');
-	
-	if (walk(maze, start.x, start.y, seen) == true)
+	seen = (char **) malloc(sizeof(char *) * (height + 1));
+	seen[height] = NULL;
+	for (int i = 0; i < height; i++)
 	{
-		maze[start.x][start.y] = 'S';
-		print_solution(maze, seen, 5, 5);
+		seen[i] = (char *) malloc(sizeof(char) * (width + 1));
+		memset(seen[i], '0', width);
+		seen[i][width] = '\0';
+	}
+	if (walk(maze, seen, start.x, start.y, width, height) == true)
+	{
+		maze[start.y][start.x] = 'S';
+		print_solution(maze, seen, width, height);
 	}
 }
 
@@ -145,7 +142,9 @@ int get_maze_width(char **maze)
 
 	while (maze[i])
 	{
-		temp = strlen(maze[i]);
+		temp = 0;
+		for (int j = 0; maze[i][j] && maze[i][j] != '\n'; j++)
+			temp++;
 		if (temp > width)
 			width = temp;
 		i++;
