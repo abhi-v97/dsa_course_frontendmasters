@@ -29,23 +29,23 @@ typedef struct s_point
 	int	y;
 }		t_point;
 
-t_point	find_start(char maze[5][5], char c)
+t_point	find_start(char **maze, char c, int width, int height)
 {
-	t_point result;
+	t_point start;
 
-	result.x = -1;
-	result.y = -1;
-	for (int i = 0; i < 5; i++)
-		for (int j = 0; j < 5; j++)
+	start.x = -1;
+	start.y = -1;
+	for (int i = 0; i < width; i++)
+		for (int j = 0; j < height; j++)
 		{
 			if (maze[i][j] == c)
 			{
-				result.x = i;
-				result.y = j;
-				return (result);
+				start.x = i;
+				start.y = j;
+				return (start);
 			}
 		}
-	return (result);
+	return (start);
 }
 
 void	map_setchar(char maze[5][5], char c)
@@ -110,11 +110,12 @@ void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
 	}
 }
 
-void	solve(char maze[5][5], int width, int height)
+void	solve(char **maze, int width, int height)
 {
 	char	seen[5][5];
-	t_point	start = find_start(maze, 'S');
+	t_point	start = find_start(maze, 'S', width, height);
 	
+	printf("%i %i \n", start.x, start.y);
 	map_setchar(seen, '0');
 	
 	if (walk(maze, start.x, start.y, seen) == true)
@@ -179,6 +180,6 @@ int main()
 	}
 
 	int width = get_maze_width(maze);
-	solve(map, width, height);
-
+	solve(maze, width, height);
+	return (0);
 }
