@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <stdbool.h>
 // https://stackoverflow.com/questions/74130502/maze-solving-in-c
 
 /* 
-	A maze solver created to understand test recursion.
+	A maze solver created to understand and test recursion.
 
 	When using recursion, define base cases for the scenario:
 		1. pointer outside the map
@@ -60,8 +63,8 @@ bool	can_walk(char maze[5][5], char seen[5][5], int x, int y)
 		return (false);
 	if (seen[x][y] == true)
 		return (false);
-	seen[x][y] = true;
-	return (false);
+	// seen[x][y] = true;
+	return (true);
 }
 
 bool walk(char maze[5][5], int x, int y, char seen[5][5])
@@ -98,7 +101,7 @@ void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
 	{
 		for (int x = 0; x < width; x++)
 		{
-			if (maze[y][x] == '0' && seen[y][x] == '1')
+			if (maze[y][x] == '1' && seen[y][x] == '1')
 				printf(" x ");
 			else
 				printf(" %c ", maze[y][x]);
@@ -107,21 +110,46 @@ void	print_solution(char maze[5][5], char seen[5][5], int height, int width)
 	}
 }
 
-void	solve(char maze[5][5])
+void	solve(char maze[5][5], int width, int height)
 {
 	char	seen[5][5];
-	char	path[5][5];
 	t_point	start = find_start(maze, 'S');
 	
 	map_setchar(seen, '0');
-	map_setchar(path, '0');
 	
 	if (walk(maze, start.x, start.y, seen) == true)
+	{
+		maze[start.x][start.y] = 'S';
 		print_solution(maze, seen, 5, 5);
+	}
+}
 
-	print_solution(maze, seen, 5, 5);
-	print_solution(seen, seen, 5, 5);
+int	get_maze_height(char *file)
+{
+	FILE *fd = fopen(file, "r");
+	char *line = NULL;
+	size_t len = 0;
+	int	height = 0;
 
+	while (getline(&line, &len, fd) != -1)
+		height++;
+	return (fclose(fd), height);
+}
+
+int get_maze_width(char **maze)
+{
+	int width = 0;
+	int temp = 0;
+	int i = 0;
+
+	while (maze[i])
+	{
+		temp = strlen(maze[i]);
+		if (temp > width)
+			width = temp;
+		i++;
+	}
+	return (width);
 }
 
 int main()
@@ -131,6 +159,26 @@ int main()
 					{'1', '0', '1', '1', '1'}, 
 					{'1', '0', '1', '0', '1'}, 
 					{'1', 'S', '1', '1', '1'}};
-	solve(map);
+	
+	char **maze;
+	int	height;
+
+	height = get_maze_height("maze");
+	maze = (char **) malloc(sizeof(char *) * (height + 1));
+	maze[height] = NULL;
+	
+	
+	FILE *fd = fopen("maze", "r");
+	char *line = NULL;
+	size_t len = 0;
+	int i = 0;
+	while (getline(&line, &len, fd) != -1)
+	{
+		maze[i] = strdup(line);
+		i++;
+	}
+
+	int width = get_maze_width(maze);
+	solve(map, width, height);
 
 }
