@@ -5,7 +5,9 @@
 			"type": "cppdbg",
 			"request": "launch",
 			"program": "${workspaceFolder}/recursion/a.out",
-			"args": [],
+			"args": [
+				"large"
+			],
 			"stopAtEntry": false,
 			"cwd": "${fileDirname}",
 			"environment": [],
