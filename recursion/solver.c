@@ -12,7 +12,7 @@
 		1. pointer outside the map
 		2. pointer points to a wall
 		3. pointer is null
-		4. pointer is "seen"
+		4. pointer is "path"
 		
 	Typically, you make a separate function for the recursion which is called
 	by the "entrance" function
@@ -31,53 +31,65 @@ typedef struct s_mazeinfo
 	int		width;
 }		t_mazeinfo;
 
+// HELPER FUNCTIONS
 void	free_maze(char **maze, t_mazeinfo *data);
 int		get_maze_width(char **maze);
 int		get_maze_height(char *file);
-void	print_solution(char **maze, char **seen, t_mazeinfo *data);
+void	print_solution(char **maze, char **path, t_mazeinfo *data);
 void	find_start(char **maze, char c, t_mazeinfo *data);
 
-bool	can_walk(char **maze, char **seen, int x, int y, t_mazeinfo *data)
+// checks if the tile can be walked over to
+// returns false if its out of bounds or already path, true otherwise
+bool	can_walk(char **maze, char **path, int x, int y, t_mazeinfo *data)
 {
 	if (x < 0 || y < 0 || x >= data->width || y >= data->height)
 		return (false);
 	if (maze[y][x] == '1')
 		return (false);
-	if (seen[y][x] == true)
+	if (path[y][x] == true)
 		return (false);
 	return (true);
 }
 
-bool walk(char **maze, char **seen, int x, int y, t_mazeinfo *data)
+// main recursive function, marks the current tile as "1" and walks in all four
+// directions.
+// marks start point as "path" and begins walking in all four directions
+// for each direction, keep walking in that direction until you hit a dead-end
+// once you hit a dead-end, walk back each step and try all possible directions
+bool walk(char **maze, char **path, int x, int y, t_mazeinfo *data)
 {
 	if (y < 0 || x < 0)
 		return (false);
 	if (maze[y] && maze[y][x] == 'E')
 	{
-		seen[y][x] = '1';
+		path[y][x] = '1';
 		return (true);
 	}
-	if (can_walk(maze, seen, x, y, data) == true)
+	if (can_walk(maze, path, x, y, data) == true)
 	{
-		seen[y][x] = '1';
+		path[y][x] = '1';
 		maze[y][x] = '1';
-		if (walk(maze, seen, x, y + 1, data) == true)
+		if (walk(maze, path, x, y + 1, data) == true)
 			return (true);
-		if (walk(maze, seen, x + 1, y, data) == true)
+		if (walk(maze, path, x + 1, y, data) == true)
 			return (true);
-		if (walk(maze, seen, x, y - 1, data) == true)
+		if (walk(maze, path, x, y - 1, data) == true)
 			return (true);
-		if (walk(maze, seen, x - 1, y, data) == true)
+		if (walk(maze, path, x - 1, y, data) == true)
 			return (true);
-		seen[y][x] = '0';
+		path[y][x] = '0';
 		maze[y][x] = '0';
 	}
 	return (false);
 }
 
+// finds the start point, aborts if one isn't found
+// creates the path array, which is the same size as the maze array but all
+// zeroes instead
+// then proceeds to call the main recursive function
 void	solve(char **maze, t_mazeinfo *data)
 {
-	char	**seen;
+	char	**path;
 
 	find_start(maze, 'S', data);
 	if (data->start_x == -1 || data->start_y == -1)
@@ -85,22 +97,22 @@ void	solve(char **maze, t_mazeinfo *data)
 		printf("start not found!\n");
 		return ;
 	}
-	seen = (char **) malloc(sizeof(char *) * (data->height + 1));
-	seen[data->height] = NULL;
+	path = (char **) malloc(sizeof(char *) * (data->height + 1));
+	path[data->height] = NULL;
 	for (int i = 0; i < data->height; i++)
 	{
-		seen[i] = (char *) malloc(sizeof(char) * (data->width + 1));
-		memset(seen[i], '0', data->width);
-		seen[i][data->width] = '\0';
+		path[i] = (char *) malloc(sizeof(char) * (data->width + 1));
+		memset(path[i], '0', data->width);
+		path[i][data->width] = '\0';
 	}
-	if (walk(maze, seen, data->start_x, data->start_y, data) == true)
+	if (walk(maze, path, data->start_x, data->start_y, data) == true)
 	{
 		maze[data->start_y][data->start_x] = 'S';
-		print_solution(maze, seen, data);
+		print_solution(maze, path, data);
 	}
 	else
 		printf("end not found!\n");
-	free_maze(seen, data);
+	free_maze(path, data);
 }
 
 int main(int argc, char **argv)
@@ -113,19 +125,19 @@ int main(int argc, char **argv)
 	}
 
 	char **maze;
-
 	t_mazeinfo *data;
-	data = (t_mazeinfo *) malloc(sizeof(t_mazeinfo));
 
+	// malloc the data struct
+	data = (t_mazeinfo *) malloc(sizeof(t_mazeinfo));
 	data->height = get_maze_height(argv[1]);
-	maze = (char **) malloc(sizeof(char *) * (data->height + 1));
-	maze[data->height] = NULL;
-	
-	
+
+	// copy the maze from the map file
 	FILE *fd = fopen(argv[1], "r");
 	char *line = NULL;
 	size_t len = 0;
 	int i = 0;
+	maze = (char **) malloc(sizeof(char *) * (data->height + 1));
+	maze[data->height] = NULL;
 	while (getline(&line, &len, fd) != -1)
 	{
 		maze[i] = strdup(line);
@@ -136,15 +148,18 @@ int main(int argc, char **argv)
 	free(line);
 	line = NULL;
 	fclose(fd);
+
+	// find the max width of the maze
 	data->width = get_maze_width(maze);
 	
+	// attempt to solve the maze
 	solve(maze, data);
+	
+	// free the maze array and the data struct
 	free_maze(maze, data);
 	free(data);
 	return (0);
 }
-
-// HELPER FUNCTIONS
 
 // calculates the "height" of the maze by counting the number of lines
 int	get_maze_height(char *file)
@@ -186,15 +201,15 @@ int get_maze_width(char **maze)
 
 // prints the final output
 // prints the maze, replacing 0 with space and the path with *
-void	print_solution(char **maze, char **seen, t_mazeinfo *data)
+void	print_solution(char **maze, char **path, t_mazeinfo *data)
 {
 	for (int y = 0; y < data->height && maze[y]; y++)
 	{
 		for (int x = 0; x < data->width && maze[y][x]; x++)
 		{
-			if (maze[y][x] == '1' && seen[y][x] == '1')
+			if (maze[y][x] == '1' && path[y][x] == '1')
 				printf("*");
-			else if (maze[y][x] == '0' && seen[y][x] == '0')
+			else if (maze[y][x] == '0' && path[y][x] == '0')
 				printf(" ");
 			else
 				printf("%c", maze[y][x]);
@@ -203,7 +218,7 @@ void	print_solution(char **maze, char **seen, t_mazeinfo *data)
 	}
 }
 
-// used to free the maze and seen arrays
+// used to free the maze and path arrays
 void	free_maze(char **maze, t_mazeinfo *data)
 {
 	for (int i = 0; i < data->height && maze[i]; i++)

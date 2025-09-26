@@ -6,7 +6,7 @@
 			"request": "launch",
 			"program": "${workspaceFolder}/recursion/a.out",
 			"args": [
-				"large"
+				"maze"
 			],
 			"stopAtEntry": false,
 			"cwd": "${fileDirname}",
