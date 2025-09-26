@@ -25,7 +25,7 @@ typedef struct s_queue
 	struct s_node *tail;
 }	t_queue;
 
-// mallocs and initialises an emtpy queue
+// mallocs and initialises an empty queue
 // returns pointer to stack on success, NULL on failure
 t_queue	*init_queue()
 {

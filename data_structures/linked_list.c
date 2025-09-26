@@ -17,6 +17,8 @@ typedef struct s_list
 	struct s_list	*next;
 }	t_list;
 
+// mallocs and initialises an empty node
+// returns pointer to stack on success, NULL on failure
 t_list	*new_node(int data)
 {
 	t_list	*new;
@@ -27,6 +29,7 @@ t_list	*new_node(int data)
 	return (new);
 }
 
+// returns the last node of a linked list
 t_list	*get_last(t_list *head)
 {
 	t_list	*last;
@@ -37,19 +40,24 @@ t_list	*get_last(t_list *head)
 	return (last);
 }
 
-void	append(t_list **head, int data)
+// adds a node at the end of the linked list
+// returns 0 on success, 1 on failure
+int	append(t_list **head, int data)
 {
 	t_list	*new;
 
 	new = new_node(data);
-	if (!head)
-		return ;
+	if (!head || !new)
+		return (1);
 	else if (!(*head))
 		*head = new;
 	else
 		get_last(*head)->next = new;
+	return (0);
 }
 
+// adds a node to the head of a linked list
+// returns 0 on success, 1 on failure
 void	prepend(t_list **head, t_list *node)
 {
 	if (head)
@@ -57,6 +65,7 @@ void	prepend(t_list **head, t_list *node)
 	*head = node;
 }
 
+// returns size of linked list
 int	get_length(t_list *head)
 {
 	int		size;
@@ -72,6 +81,7 @@ int	get_length(t_list *head)
 	return (size);
 }
 
+// returns a pointer to the node at specified index
 t_list	*get(t_list *head, int index)
 {
 	t_list	*node;
@@ -84,7 +94,9 @@ t_list	*get(t_list *head, int index)
 	return (node);
 }
 
-void	remove_at(t_list **head, int index)
+// removes and frees element at the specified index
+// returns 0 on success, 1 on failure
+int	remove_at(t_list **head, int index)
 {
 	int		i;
 	t_list	*current;
@@ -96,7 +108,7 @@ void	remove_at(t_list **head, int index)
 	if (!get_length(*head) || get_length(*head) < index)
 	{
 		printf("index out of bounds!\n");
-		return ;
+		return (1);
 	}
 	while (current && ++i < index)
 	{
@@ -104,21 +116,24 @@ void	remove_at(t_list **head, int index)
 		current = current->next;
 	}
 	if (!current)
-		return ;
+		return (1);
 	if (prev)
 		prev->next = current->next;
 	else
 	 	*head = current->next;
 	free(current);
 	current = NULL;
+	return (0);
 }
 
-void	remove_node(t_list **head, t_list *node)
+// removes and frees specific node from the linked list
+int	remove_node(t_list **head, t_list *node)
 {
 	t_list	*current;
 	t_list	*prev;
 	
 	current = *head;
+	prev = NULL;
 	while (current != node)
 	{
 		prev = current;
@@ -127,24 +142,26 @@ void	remove_node(t_list **head, t_list *node)
 	if (!current)
 	{
 		printf("node not found!\n");
-		return ;
+		return (1);
 	}
-	prev->next = current->next;
+	if (prev)
+		prev->next = current->next;
+	else
+	 	*head = current->next;
 	current->next = NULL;
 	free(current);
+	return (0);
 }
 
-void	insert_at(t_list **head, t_list *node, int index)
+// insert given node at a specific index
+int	insert_at(t_list **head, t_list *node, int index)
 {
 	int		i;
 	t_list	*current;
 
 	i = -1;
-	if (get_length(*head) < index)
-	{
-		printf("index too large\n");
-		return ;
-	}
+	if (get_length(*head) < index || index < 0)
+		return (1);
 	if (!(*head) && index == 0)
 		*head = node;
 	else
@@ -155,6 +172,7 @@ void	insert_at(t_list **head, t_list *node, int index)
 		node->next = current->next;
 		current->next = node;
 	}
+	return (0);
 }
 
 void	lst_map(t_list **head, int(*f)(t_list *))
@@ -213,5 +231,9 @@ int main()
 	
 	printf("\ntest remove_node by removing the node found by get\n");
 	remove_node(&list, test);
+	print_list(list);
+
+	printf("\ntest insert_at by inserting 42 at position 2\n");
+	insert_at(&list, new_node(42), 2);
 	print_list(list);
 }
