@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "bst.h"
 
 /**
  * A binary search tree is a type of binary tree data structure where each node
@@ -12,12 +11,6 @@
  * the tree remains balanced.
  */
 
-typedef struct s_node {
-  struct s_node *left;
-  struct s_node *right;
-  int data;
-} t_node;
-
 // creates a new tree node and initialises it
 t_node *bst_new(int value) {
   t_node *new;
@@ -29,6 +22,33 @@ t_node *bst_new(int value) {
   return (new);
 }
 
+// since the left node of a tree is always smaller, the leftmost node with a
+// null left branch will be the smallest each time
+//
+// Complexity: O(h) time, O(1) space
+int bst_min(t_node *root) {
+  if (root == NULL)
+    return (-1);
+
+  while (root->left)
+    root = root->left;
+
+  return (root->data);
+}
+
+// Opposite of bst_min, the rightmost value of a tree has to be its max
+//
+// Complexity: O(h) time, O(1) space
+int bst_max(t_node *root) {
+  if (root == NULL)
+    return (-1);
+
+  while (root->right)
+    root = root->right;
+
+  return (root->data);
+}
+
 // inserts a node into tree using recursion
 void bst_insert(t_node **root, int value) {
   // base case
@@ -36,24 +56,28 @@ void bst_insert(t_node **root, int value) {
     *root = bst_new(value);
   }
 
+  t_node *node = *root;
   // choose which branch of the tree to walk towards
-  if (value < (*root)->data) {
-    if ((*root)->left) {
-      bst_insert(&(*root)->left, value);
+  if (value < node->data) {
+    if (node->left) {
+      bst_insert(&node->left, value);
     } else {
-      (*root)->left = bst_new(value);
+      node->left = bst_new(value);
     }
 
-  } else if (value > (*root)->data) {
-    if ((*root)->right) {
-      bst_insert(&(*root)->right, value);
+  } else if (value > node->data) {
+    if (node->right) {
+      bst_insert(&node->right, value);
     } else {
-      (*root)->right = bst_new(value);
+      node->right = bst_new(value);
     }
   }
 }
 
 // inserts node into tree iteratively
+//
+// start from root, go left if value is smaller, right if greater
+// Complexity: O(h) time, O(h) space due to recursion stack
 t_node *bst_insert_iter(t_node **root, int value) {
   t_node *new;
 
@@ -78,15 +102,18 @@ t_node *bst_insert_iter(t_node **root, int value) {
 }
 
 // prints the bst with in order traversal
-void bst_print(t_node *root) {
+void bst_inorder_print(t_node *root) {
   if (root == NULL)
     return;
 
-  bst_print(root->left);
+  bst_inorder_print(root->left);
   printf("%i ", root->data);
-  bst_print(root->right);
+  bst_inorder_print(root->right);
 }
 
+// helper function for bst_delete
+// searches for smallest value in right subtree, the next greater value than the
+// target node to be deleted
 t_node *getSuccessor(t_node *current) {
   current = current->right;
   while (current && current->left) {
@@ -137,6 +164,35 @@ t_node *bst_delete(t_node **root, int value) {
   return (node);
 }
 
+// finds the next element from inorder traversal (inorder successor)
+//
+// since the number can be in a separate branch, we start from the top and keep
+// filtering
+//
+// if we encounter a larger node, it is marked as a possible successor and
+// proceed to its left, trying to find the next smallest node
+// if we encounter a smaller or equal node, we move towards the left branch of
+// the tree
+// Complexity: O(h) time, O(1) space due to iterative approach
+t_node *bst_inorder_next(t_node *root, int target) {
+  if (root == NULL)
+    return (NULL);
+
+  t_node *next = NULL;
+  t_node *current = root;
+
+  while (current) {
+    if (current->data > target) {
+      next = current;
+      current = current->left;
+    } else if (current->data <= target) {
+      current = current->right;
+    }
+  }
+
+  return (next);
+}
+
 void bst_free(t_node *root) {
   if (root == NULL)
     return;
@@ -146,6 +202,24 @@ void bst_free(t_node *root) {
   free(root);
 }
 
+// hacky bst print that outputs a tree-like structure
+// start the function with a large value for i like 10
+// this adds a bunch of whitespace to root, which is then subtracted for left
+// nodes and added for right nodes, mimicking a tree structure
+void bst_print_simple(t_node *root, int i) {
+
+  int j = 0;
+
+  if (root == NULL)
+    return;
+
+  while (j++ < i)
+    printf("   ");
+  printf("%d\n", root->data);
+  bst_print_simple(root->left, --i);
+  bst_print_simple(root->right, i + 2);
+}
+
 int main(int argc, char **argv) {
   t_node **root;
 
@@ -153,16 +227,17 @@ int main(int argc, char **argv) {
   *root = NULL;
   if (!root)
     return (1);
-  bst_insert(root, 4);
-  bst_insert(root, 5);
-  bst_insert(root, 0);
-  bst_insert(root, 1);
-  bst_insert(root, 3);
-  bst_print(*root);
+  bst_insert(root, 22);
+  bst_insert(root, 12);
+  bst_insert(root, 30);
+  bst_insert(root, 8);
+  bst_insert(root, 20);
+  bst_insert(root, 40);
+  bst_insert(root, 15);
+  bst_print_simple(*root, 10);
 
-  bst_delete(root, 4);
-  bst_print(*root);
   bst_free(*root);
   free(root);
+
   return (0);
 }
