@@ -87,13 +87,63 @@ void bst_print(t_node *root) {
   bst_print(root->right);
 }
 
-void bst_free(t_node *root) {
-	if (root == NULL)
-		return ;
+t_node *getSuccessor(t_node *current) {
+  current = current->right;
+  while (current && current->left) {
+    current = current->left;
+  }
+  return (current);
+}
 
-	bst_free(root->left);
-	bst_free(root->right);
-	free(root);
+// delete node in bst with int value
+// to delete a node while maintaining the bst structure, the deletion considers
+// how many children the node to be deleted has
+//
+// - if its a leaf node, it can simply be deleted as it has no children to
+// maintain
+// - if it has one child, it is connected to the node's parent and then the
+// target node is removed
+// - if it has two children, the node has to be replaced with a successor
+// -- inorder successor: smallest value in the right subtree, next greater value
+// than target node
+// -- inorder predecessor: largest value in the left subtree, next smallest
+// value than target node
+t_node *bst_delete(t_node **root, int value) {
+  if (root == NULL || *root == NULL)
+    return (*root);
+
+  t_node *node = *root;
+
+  if (node->data > value)
+    node->left = bst_delete(&node->left, value);
+  else if (node->data < value)
+    node->right = bst_delete(&node->right, value);
+  else {
+    if (node->left == NULL) {
+      t_node *temp = node->right;
+      free(node);
+      return (temp);
+    }
+    if (node->right == NULL) {
+      t_node *temp = node->left;
+      free(node);
+      return (temp);
+    }
+
+    t_node *successor = getSuccessor(node);
+    node->data = successor->data;
+    node->right = bst_delete(&node->right, successor->data);
+  }
+  return (node);
+}
+
+void bst_free(t_node *root) {
+  if (root == NULL)
+    return;
+
+  bst_free(root->left);
+  bst_free(root->right);
+  free(root);
 }
 
 int main(int argc, char **argv) {
@@ -107,8 +157,11 @@ int main(int argc, char **argv) {
   bst_insert(root, 5);
   bst_insert(root, 0);
   bst_insert(root, 1);
+  bst_insert(root, 3);
   bst_print(*root);
-  
+
+  bst_delete(root, 4);
+  bst_print(*root);
   bst_free(*root);
   free(root);
   return (0);
