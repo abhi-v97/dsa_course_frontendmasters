@@ -25,4 +25,10 @@ typedef struct s_queue {
 void bst_print(t_node *root);
 t_node *bst_new(int value);
 
+int bst_height(t_node *root, int h);
+
+t_queue *queue_init();
+void enqueue(t_queue *q, t_node *node, int level);
+t_qnode *dequeue(t_queue *q);
+void queue_clear(t_queue *q);
 #endif
